@@ -5,7 +5,7 @@ from auth import authenticate_user, create_access_token, get_current_user, get_p
 from database import Base, engine, get_db
 from crud import create_videojuego, get_videojuegos
 from schemas import Token, VideojuegoCreate, VideojuegoResponse, UserCreate, UserResponse
-from models import User
+from models import User, Videojuego
 
 # Inicializar la aplicación
 app = FastAPI()
@@ -39,6 +39,13 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 @app.get("/videojuegos/", response_model=list[VideojuegoResponse])
 def list_videojuegos(db: Session = Depends(get_db)):
     return get_videojuegos(db)
+
+@app.get("/videojuegos/{id}", response_model=VideojuegoResponse)
+def get_videojuego_by_id(id: int, db: Session = Depends(get_db)):
+    videojuego = db.query(Videojuego).filter(Videojuego.id == id).first()
+    if not videojuego:
+        raise HTTPException(status_code=404, detail="Videojuego no encontrado")
+    return videojuego
 
 # Ruta para crear videojuegos (requiere autenticación)
 @app.post("/videojuegos/", response_model=VideojuegoResponse)
