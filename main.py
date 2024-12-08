@@ -6,6 +6,7 @@ from database import Base, engine, get_db
 from crud import create_videojuego, get_videojuegos
 from schemas import Token, VideojuegoCreate, VideojuegoResponse, UserCreate, UserResponse
 from models import User, Videojuego
+from typing import List
 
 # Inicializar la aplicación
 app = FastAPI()
@@ -46,6 +47,20 @@ def get_videojuego_by_id(id: int, db: Session = Depends(get_db)):
     if not videojuego:
         raise HTTPException(status_code=404, detail="Videojuego no encontrado")
     return videojuego
+
+@app.get("/videojuegos/desarrollador/{desarrollador}", response_model=List[VideojuegoResponse])
+def get_videojuegos_by_desarrollador(desarollador: str, db: Session = Depends(get_db)):
+    videojuegos = db.query(Videojuego).filter(Videojuego.desarrollador == desarollador).all()
+    if not videojuegos:
+        raise HTTPException(status_code=404, detail="No se encontraron videojuegos para el desarrollador especificado")
+    return videojuegos
+
+@app.get("/videojuegos/clasificacion/{clasificacion}", response_model=List[VideojuegoResponse])
+def get_videojuegos_by_clasificacion(clasificacion: str, db: Session = Depends(get_db)):
+    videojuegos = db.query(Videojuego).filter(Videojuego.clasificacion == clasificacion).all()
+    if not videojuegos:
+        raise HTTPException(status_code=404, detail="No se encontraron videojuegos para la clasificación especificada")
+    return videojuegos
 
 # Ruta para crear videojuegos (requiere autenticación)
 @app.post("/videojuegos/", response_model=VideojuegoResponse)
