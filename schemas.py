@@ -4,6 +4,7 @@ class VideojuegoBase(BaseModel):
     nombre: str
     imagen: str
     desarrollador: str
+    descripcion: str
     plataforma: str
     clasificacion: str
 
@@ -31,3 +32,16 @@ class UserResponse(UserBase):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+class ListaDeDeseadosBase(BaseModel):
+    videojuego_id: int
+    usuario_id: int 
+
+class ListaDeDeseadosCreate(ListaDeDeseadosBase):
+    pass
+
+class ListaDeDeseadosResponse(ListaDeDeseadosBase):
+    id: int
+
+    class Config:
+        orm_mode = True
