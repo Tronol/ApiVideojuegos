@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from auth import authenticate_user, create_access_token, get_current_user, get_password_hash
 from database import Base, engine, get_db
-from crud import create_videojuego, get_videojuegos, agregar_a_lista, obtener_lista
+from crud import create_videojuego, get_videojuegos, agregar_a_lista, obtener_lista, ListaDeDeseados
 from schemas import Token, VideojuegoCreate, VideojuegoResponse, UserCreate, UserResponse, ListaDeDeseadosResponse, ListaDeDeseadosCreate
 from models import User, Videojuego
 from typing import List
@@ -41,9 +41,16 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
+
     access_token = create_access_token(data={"sub": user.username})
-    return {"access_token": access_token, "token_type": "bearer"}
-# Ruta para crear videojuegos (requiere autenticación)
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_id": user.id,  # Incluir el ID del usuario
+    }
+
+#Creacion de videojuegos
 @app.post("/videojuegos/", response_model=VideojuegoResponse, tags=["Videojuegos"])
 def create_videojuego_endpoint(
     videojuego: VideojuegoCreate,
@@ -93,7 +100,24 @@ def obtener_lista_por_usuario(
     usuario_id: int,
     db: Session = Depends(get_db),
 ):
-    lista = obtener_lista(usuario_id, db)
+    lista = (
+        db.query(ListaDeDeseados)
+        .join(Videojuego, ListaDeDeseados.videojuego_id == Videojuego.id)
+        .filter(ListaDeDeseados.usuario_id == usuario_id)
+        .all()
+    )
+
     if not lista:
         raise HTTPException(status_code=404, detail="No se encontró una lista para este usuario.")
-    return lista
+
+    # Agregar el videojuego completo al resultado
+    resultado = [
+        ListaDeDeseadosResponse(
+            id=item.id,
+            usuario_id=item.usuario_id,
+            videojuego=item.videojuego,
+        )
+        for item in lista
+    ]
+
+    return resultado

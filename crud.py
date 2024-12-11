@@ -30,5 +30,12 @@ def agregar_a_lista(usuario_id: int, videojuego_id: int, db: Session):
     return nueva_entrada
 
 def obtener_lista(usuario_id: int, db: Session):
-    return db.query(ListaDeDeseados).filter(ListaDeDeseados.usuario_id == usuario_id).all()
+    resultados = (
+        db.query(ListaDeDeseados)
+        .join(Videojuego, ListaDeDeseados.videojuego_id == Videojuego.id)
+        .filter(ListaDeDeseados.usuario_id == usuario_id)
+        .all()
+    )
+    return resultados
+
 

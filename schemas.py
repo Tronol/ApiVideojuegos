@@ -32,16 +32,18 @@ class UserResponse(UserBase):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    user_id: int
 
 class ListaDeDeseadosBase(BaseModel):
-    videojuego_id: int
-    usuario_id: int 
+    usuario_id: int
 
 class ListaDeDeseadosCreate(ListaDeDeseadosBase):
-    pass
+    videojuego_id: int
 
+# Respuesta incluirá el videojuego completo
 class ListaDeDeseadosResponse(ListaDeDeseadosBase):
     id: int
+    videojuego: VideojuegoResponse  
 
     class Config:
         orm_mode = True
